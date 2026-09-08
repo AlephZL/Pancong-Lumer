@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Ilustrasi pancong lumer">
+  <defs>
+    <linearGradient id="mbg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF8EE"/>
+      <stop offset="1" stop-color="#F5DCB8"/>
+    </linearGradient>
+    <linearGradient id="mcake" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFDF8"/>
+      <stop offset="1" stop-color="#E9B872"/>
+    </linearGradient>
+    <radialGradient id="mlava" cx=".5" cy=".35" r=".8">
+      <stop offset="0" stop-color="#D42A24"/>
+      <stop offset="1" stop-color="#7E0A08"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="480" rx="28" fill="url(#mbg)"/>
+  <ellipse cx="320" cy="372" rx="220" ry="34" fill="#3B1E08" opacity=".12"/>
+  <ellipse cx="320" cy="350" rx="210" ry="52" fill="#2A1604"/>
+  <ellipse cx="320" cy="342" rx="210" ry="52" fill="#462608"/>
+  <g>
+    <path d="M180 328 Q180 218 265 218 Q350 218 350 328 Z" fill="url(#mcake)" stroke="#B98443" stroke-width="4"/>
+    <path d="M202 318 Q202 244 265 244 Q328 244 328 318 Q265 344 202 318 Z" fill="url(#mlava)"/>
+    <ellipse cx="262" cy="260" rx="18" ry="8" fill="#fff" opacity=".3"/>
+    <path d="M370 328 Q370 218 455 218 Q540 218 540 328 Z" fill="url(#mcake)" stroke="#B98443" stroke-width="4"/>
+    <path d="M392 318 Q392 244 455 244 Q518 244 518 318 Q455 344 392 318 Z" fill="#7D563B"/>
+    <path d="M412 310 Q412 262 455 262 Q498 262 498 310 Q455 324 412 310 Z" fill="url(#mlava)"/>
+  </g>
+  <g stroke="#8B0005" stroke-width="5" stroke-linecap="round" opacity=".25" fill="none">
+    <path d="M262 180 q10 -20 0 -40"/>
+    <path d="M455 180 q10 -20 0 -40"/>
+  </g>
+</svg>

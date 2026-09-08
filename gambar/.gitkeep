@@ -1,0 +1,5 @@
+Folder upload produk & bukti QRIS.
+- Foto menu: menu_*.jpg/png
+- Bukti bayar: bukti_*.jpg/png
+- QRIS statis gerai: taruh file bernama qris.png di sini agar tampil di checkout.
+File ini (.gitkeep) agar folder ikut ter-commit; boleh dihapus.

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Pancong lumer di atas loyang panas">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF7EF"/>
+      <stop offset=".55" stop-color="#FFE9CF"/>
+      <stop offset="1" stop-color="#F6CFA4"/>
+    </linearGradient>
+    <linearGradient id="pan" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3B1E08"/>
+      <stop offset="1" stop-color="#1E0F04"/>
+    </linearGradient>
+    <linearGradient id="cake" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFDF8"/>
+      <stop offset=".6" stop-color="#FBE8C8"/>
+      <stop offset="1" stop-color="#E8B573"/>
+    </linearGradient>
+    <linearGradient id="lumer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8B0005"/>
+      <stop offset="1" stop-color="#B31312"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" rx="32" fill="url(#bg)"/>
+  <circle cx="640" cy="120" r="180" fill="#FFFFFF" opacity=".35"/>
+  <circle cx="120" cy="500" r="140" fill="#B31312" opacity=".08"/>
+  <ellipse cx="400" cy="470" rx="290" ry="46" fill="#3B1E08" opacity=".12"/>
+  <g>
+    <ellipse cx="400" cy="440" rx="280" ry="70" fill="url(#pan)"/>
+    <ellipse cx="400" cy="424" rx="280" ry="70" fill="#4A2708"/>
+    <ellipse cx="400" cy="418" rx="262" ry="60" fill="#2A1604"/>
+  </g>
+  <g>
+    <g>
+      <path d="M250 400 Q250 320 320 320 Q390 320 390 400 Z" fill="url(#cake)" stroke="#C99A5C" stroke-width="3"/>
+      <path d="M268 392 Q268 338 320 338 Q372 338 372 392 Q320 412 268 392 Z" fill="url(#lumer)"/>
+      <ellipse cx="320" cy="352" rx="26" ry="10" fill="#FFFFFF" opacity=".28"/>
+    </g>
+    <g>
+      <path d="M410 400 Q410 320 480 320 Q550 320 550 400 Z" fill="url(#cake)" stroke="#C99A5C" stroke-width="3"/>
+      <path d="M428 392 Q428 338 480 338 Q532 338 532 392 Q480 412 428 392 Z" fill="#7D563B"/>
+      <path d="M444 384 Q444 352 480 352 Q516 352 516 384 Q480 396 444 384 Z" fill="url(#lumer)"/>
+    </g>
+  </g>
+  <g stroke="#8B0005" stroke-width="5" stroke-linecap="round" opacity=".28" fill="none">
+    <path d="M310 270 q10 -22 0 -44 q-10 -22 0 -44"/>
+    <path d="M360 270 q10 -22 0 -44 q-10 -22 0 -44"/>
+    <path d="M470 270 q10 -22 0 -44 q-10 -22 0 -44"/>
+  </g>
+  <g font-family="Georgia, serif" fill="#3B1E08">
+    <text x="64" y="110" font-size="30" letter-spacing="4" opacity=".7">SELINDUNG BARU</text>
+    <text x="60" y="160" font-size="54" font-style="italic">Pancong Lumer</text>
+  </g>
+</svg>
