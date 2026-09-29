@@ -31,8 +31,8 @@ $isLoginF = isset($_SESSION['user_id']);
     <div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1">
       <img src="gambar/menu-pancong.svg" alt="Pancong lumer" loading="lazy" style="width:64px;flex:none;border-radius:12px" onerror="this.remove()">
       <div>
-        <h4>Pancong Lumer x Chicken Roll</h4>
-        <p>Gerai Selindung Baru, Pangkalpinang.<br>Pancong lumer &amp; chicken roll crispy,<br>dimasak dadakan di atas loyang panas.</p>
+        <h4>Pancong Lumer</h4>
+        <p>Gerai Selindung Baru, Pangkalpinang.<br>Pancong lumer manis &amp; gurih,<br>dimasak dadakan di atas loyang panas.</p>
       </div>
     </div>
     <div>
@@ -52,7 +52,7 @@ $isLoginF = isset($_SESSION['user_id']);
       </ul>
     </div>
   </div>
-  <div class="copy">&copy; 2026 Pancong Lumer x Chicken Roll Selindung Baru &middot; Tugas Capstone Proyek TI</div>
+  <div class="copy">&copy; 2026 Pancong Lumer Selindung Baru &middot; Tugas Capstone Proyek TI</div>
 </footer>
 </body>
 </html>

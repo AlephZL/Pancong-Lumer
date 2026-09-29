@@ -7,7 +7,7 @@ $baru = isset($_GET['baru']);
 $order = null;
 $items = [];
 
-// Cari tiket: prioritas ?no=, lalu pesanan terakhir milik user login, lalu cookie sesi
+// Cari tiket: prioritas ?no=, lalu pesanan terakhir milik user login, lalu session guest
 if ($no !== '') {
     $stmt = mysqli_prepare($koneksi, "SELECT * FROM orders WHERE no_antrean = ? LIMIT 1");
     mysqli_stmt_bind_param($stmt, 's', $no);
@@ -22,14 +22,34 @@ if ($no !== '') {
     $order = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
     mysqli_stmt_close($stmt);
     if ($order) $no = $order['no_antrean'];
+} elseif (!empty($_SESSION['last_order'])) {
+    // Fallback guest: ambil pesanan terakhir dari session
+    $guestNo = $_SESSION['last_order'];
+    $stmt = mysqli_prepare($koneksi, "SELECT * FROM orders WHERE no_antrean = ? LIMIT 1");
+    mysqli_stmt_bind_param($stmt, 's', $guestNo);
+    mysqli_stmt_execute($stmt);
+    $order = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+    if ($order) $no = $order['no_antrean'];
 }
 
-// Riwayat milik user login (5 terakhir)
+// Riwayat: user login → dari DB, guest → dari session
 $riwayat = [];
 if (isset($_SESSION['user_id'])) {
     $uid = (int)$_SESSION['user_id'];
     $stmt = mysqli_prepare($koneksi, "SELECT no_antrean, status_pesanan, total_bayar, created_at FROM orders WHERE user_id = ? ORDER BY id DESC LIMIT 5");
     mysqli_stmt_bind_param($stmt, 'i', $uid);
+    mysqli_stmt_execute($stmt);
+    $rs = mysqli_stmt_get_result($stmt);
+    while ($r = mysqli_fetch_assoc($rs)) $riwayat[] = $r;
+    mysqli_stmt_close($stmt);
+} elseif (!empty($_SESSION['guest_orders'])) {
+    // Riwayat guest dari session (max 10 tiket terakhir)
+    $guestNos = array_reverse($_SESSION['guest_orders']);
+    $placeholders = implode(',', array_fill(0, count($guestNos), '?'));
+    $types = str_repeat('s', count($guestNos));
+    $stmt = mysqli_prepare($koneksi, "SELECT no_antrean, status_pesanan, total_bayar, created_at FROM orders WHERE no_antrean IN ($placeholders) ORDER BY id DESC LIMIT 5");
+    mysqli_stmt_bind_param($stmt, $types, ...$guestNos);
     mysqli_stmt_execute($stmt);
     $rs = mysqli_stmt_get_result($stmt);
     while ($r = mysqli_fetch_assoc($rs)) $riwayat[] = $r;
@@ -112,7 +132,7 @@ function label_matang($k) {
 <div class="split" style="grid-template-columns:1fr">
 <div class="ticket">
   <div class="ticket-head">
-    <small style="letter-spacing:.08em;opacity:.8">PANCONG LUMER x CHICKEN ROLL • SELINDUNG BARU</small>
+    <small style="letter-spacing:.08em;opacity:.8">PANCONG LUMER • SELINDUNG BARU</small>
     <div class="no"><?php echo e($order['no_antrean']); ?></div>
     <div>
       <span class="status-badge st-<?php echo e($order['status_pesanan']); ?>"><?php echo e(label_status_pesanan($order['status_pesanan'])); ?></span>
@@ -182,7 +202,7 @@ function label_matang($k) {
 
 <?php if ($riwayat): ?>
 <div class="form-card" style="max-width:560px;margin:20px auto 0">
-  <span class="eyebrow">Riwayat akun</span>
+  <span class="eyebrow"><?php echo isset($_SESSION['user_id']) ? 'Riwayat akun' : 'Riwayat pesanan sesi ini'; ?></span>
   <h4 style="margin:0 0 10px;color:var(--cocoa)">Pesanan Terakhir Kamu</h4>
   <?php foreach ($riwayat as $rw): ?>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--highest);font-size:13px;gap:8px">

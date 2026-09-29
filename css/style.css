@@ -1,5 +1,5 @@
 /* =====================================================
-   Warm Street Kitchen — Pancong Lumer x Chicken Roll
+   Warm Street Kitchen — Pancong Lumer
    Elegant & responsive (vanilla CSS, tanpa framework)
    Token: surface #fcf9f8 | primary #b31312 | amber #ffddb9
    Font: Plus Jakarta Sans + Georgia serif untuk judul
@@ -252,7 +252,6 @@ a:hover{text-decoration:underline}
   font-size:clamp(26px,4vw,38px);color:#fff;letter-spacing:.01em;text-align:center;
   padding:12px;text-shadow:0 2px 10px rgba(59,30,8,.35)}
 .img-fallback.pancong{background:linear-gradient(140deg,var(--primary),var(--sec))}
-.img-fallback.roll{background:linear-gradient(140deg,var(--sec),var(--cocoa))}
 .card-img::after{content:'';position:absolute;inset:auto 0 0 0;height:44%;
   background:linear-gradient(180deg,transparent,rgba(43,23,0,.22));pointer-events:none}
 .card-badge{position:absolute;top:8px;left:8px;padding:3px 9px;border-radius:99px;
@@ -428,8 +427,31 @@ input.invalid,select.invalid{border-color:var(--err)!important}
   box-shadow:0 0 0 3px rgba(179,19,18,.10)}
 .pay-card input{accent-color:var(--primary)}
 .pay-card small{color:var(--muted)}
-.qris-box{background:var(--cocoa);color:#fff;border-radius:14px;padding:18px;
+.qris-box{background:var(--cocoa);color:#fff;border-radius:14px;padding:20px;
   text-align:center;margin-top:12px}
+.qris-header{display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;opacity:.9}
+.qris-img{width:180px;border-radius:12px;margin:0 auto 12px;display:block;background:#fff;padding:8px}
+.qris-placeholder{margin:0 auto 12px;display:flex;flex-direction:column;align-items:center}
+.qris-placeholder svg{background:#fff;border-radius:12px;padding:8px}
+.qris-demo-label{font-size:10px;margin:6px 0 0;opacity:.6;letter-spacing:.03em}
+.qris-merchant{margin-top:10px}
+.qris-merchant b{display:block;font-size:14px;margin-bottom:2px}
+.qris-merchant span{font-size:11px;opacity:.7;letter-spacing:.03em}
+.qris-hint{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+.upload-area{position:relative;border:2px dashed rgba(59,30,8,.2);border-radius:14px;
+  overflow:hidden;transition:border-color .2s}
+.upload-area:hover,.upload-area:focus-within{border-color:var(--primary)}
+.upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2}
+.upload-inner{display:flex;flex-direction:column;align-items:center;gap:6px;padding:24px 16px;
+  color:var(--muted);font-size:13px}
+.upload-inner span{font-weight:600;color:var(--ink)}
+.upload-inner small{font-size:11px}
+.upload-preview{position:relative;display:flex;align-items:center;justify-content:center;padding:12px}
+.upload-preview img{max-height:160px;max-width:100%;border-radius:10px;object-fit:contain}
+.upload-remove{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;
+  border:none;background:var(--primary);color:#fff;font-size:14px;cursor:pointer;z-index:3;
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-sm)}
 .qris-qr{width:170px;height:170px;background:#fff;color:#111;border-radius:12px;
   margin:0 auto 10px;display:flex;align-items:center;justify-content:center;
   font-size:12px;font-weight:700;text-align:center;padding:10px}

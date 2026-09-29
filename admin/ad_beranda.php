@@ -10,7 +10,7 @@ $prodList = [];
 $rs = mysqli_query($koneksi, "SELECT p.id, p.nama_menu, p.deskripsi, p.harga_dasar, p.gambar, p.is_available,
     c.id AS category_id, c.kode_kategori, c.nama_kategori
     FROM products p JOIN categories c ON c.id=p.category_id
-    WHERE p.is_available=1 ORDER BY c.id ASC, p.id ASC");
+    WHERE p.is_available=1 AND c.kode_kategori != 'topping' ORDER BY c.id ASC, p.id ASC");
 if ($rs) while ($r = mysqli_fetch_assoc($rs)) $prodList[] = $r;
 
 $categories = [];
@@ -40,13 +40,9 @@ if ($rs) while ($r = mysqli_fetch_assoc($rs)) {
 }
 
 // Visual menu kasir bergambar ala Stitch
-function gambar_menu_admin($nama, $file) {
+function gambar_menu_admin($file) {
     if (!empty($file) && is_file(__DIR__ . '/../gambar/' . $file)) {
         return ['file', '../gambar/' . rawurlencode($file)];
-    }
-    $n = strtolower($nama);
-    if (strpos($n, 'roll') !== false || strpos($n, 'jumbo') !== false) {
-        return ['svg', '../gambar/menu-roll.svg'];
     }
     return ['svg', '../gambar/menu-pancong.svg'];
 }
@@ -56,9 +52,8 @@ function monogram_menu_admin($nama) {
     foreach (array_slice($kata, 0, 2) as $k) $m .= strtoupper(substr($k, 0, 1));
     return $m !== '' ? $m : 'PL';
 }
-function kelas_menu_admin($nama) {
-    $n = strtolower($nama);
-    return (strpos($n, 'roll') !== false) ? 'roll' : 'pancong';
+function kelas_menu_admin() {
+    return 'pancong';
 }
 function badge_menu_admin($nama, $stok, $idx) {
     if (!$stok) return ['Habis', 'bd-grey'];
@@ -66,7 +61,6 @@ function badge_menu_admin($nama, $stok, $idx) {
     if ($idx === 0 || strpos($n, 'choco') !== false) return ['Best Seller', 'bd-sec'];
     if (strpos($n, 'jumbo') !== false) return ['Hemat Sharing', 'bd-amber'];
     if (strpos($n, 'taro') !== false || strpos($n, 'matcha') !== false) return ['Varian Baru', 'bd-pink'];
-    if (strpos($n, 'roll') !== false) return ['Crispy Gurih', 'bd-grey'];
     return ['Lumer Favorit', 'bd-amber'];
 }
 
@@ -116,21 +110,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['aksi']) && $_
             $pid = (int)$pidRaw;
             $qty = min(20, max(1, (int)($qtys[$idx] ?? 1)));
             if ($pid <= 0) continue;
-            $stmt = mysqli_prepare($koneksi, "SELECT id, harga_dasar, is_available,
-                (SELECT kode_kategori FROM categories WHERE id=products.category_id) AS kode
-                FROM products WHERE id=? LIMIT 1");
+            $stmt = mysqli_prepare($koneksi, "SELECT id, harga_dasar, is_available FROM products WHERE id=? LIMIT 1");
             mysqli_stmt_bind_param($stmt, 'i', $pid);
             mysqli_stmt_execute($stmt);
             $prod = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
             mysqli_stmt_close($stmt);
             if (!$prod || (int)$prod['is_available'] !== 1) continue;
-            $isRoll = ($prod['kode'] === 'chicken_roll');
             $porsi = ($porsis[$idx] ?? '1_loyang') === 'half_loyang' ? 'half_loyang' : '1_loyang';
             $mat = $matangs[$idx] ?? null;
             if (!in_array($mat, ['matang','setengah_matang','tiga_perempat'], true)) $mat = 'matang';
-            if ($isRoll) { $porsi = '1_loyang'; $mat = null; }
             $base = (int)$prod['harga_dasar'];
-            if (!$isRoll && $porsi === 'half_loyang') $base = (int)round($base/2);
+            if ($porsi === 'half_loyang') $base = (int)round($base/2);
             $tops = [];
             $topSum = 0;
             $rawTops = $_POST['tops'][$idx] ?? [];
@@ -207,12 +197,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['aksi']) && $_
 // --- Ringkasan Kanban hari ini ---
 $today = date('Y-m-d');
 $kanban = ['pending'=>0,'dimasak'=>0,'siap_ambil'=>0,'selesai'=>0,'omzet'=>0,'total'=>0];
-$rs = mysqli_query($koneksi, "SELECT status_pesanan, COUNT(*) c, SUM(total_bayar) s FROM orders WHERE DATE(created_at)='$today' AND status_pesanan != 'batal' GROUP BY status_pesanan");
+$stKanban = mysqli_prepare($koneksi, "SELECT status_pesanan, COUNT(*) c, SUM(total_bayar) s FROM orders WHERE DATE(created_at)=? AND status_pesanan != 'batal' GROUP BY status_pesanan");
+mysqli_stmt_bind_param($stKanban, 's', $today);
+mysqli_stmt_execute($stKanban);
+$rs = mysqli_stmt_get_result($stKanban);
 if ($rs) while ($r = mysqli_fetch_assoc($rs)) {
     $kanban[$r['status_pesanan']] = (int)$r['c'];
     $kanban['omzet'] += (int)$r['s'];
     $kanban['total'] += (int)$r['c'];
 }
+mysqli_stmt_close($stKanban);
 // Antrean pending terbaru (5)
 $antre = [];
 $rs = mysqli_query($koneksi, "SELECT no_antrean, nama_pemesan, metode_bayar, total_bayar, created_at FROM orders WHERE status_pesanan='pending' ORDER BY id ASC LIMIT 5");
@@ -331,11 +325,10 @@ $persenTarget = $targetHarian > 0 ? min(100, (int)round($kanban['total'] / $targ
       <div class="pos-menu-grid" id="posMenuGrid">
         <?php foreach ($prodList as $idx => $p):
           $stok = ((int)$p['is_available'] === 1);
-          $isRoll = ($p['kode_kategori'] === 'chicken_roll');
-          [$jenisImg, $imgSrc] = gambar_menu_admin($p['nama_menu'], $p['gambar'] ?? '');
+          [$jenisImg, $imgSrc] = gambar_menu_admin($p['gambar'] ?? '');
           [$badgeTxt, $badgeCls] = badge_menu_admin($p['nama_menu'], $stok, $idx);
           $mono = monogram_menu_admin($p['nama_menu']);
-          $klsMenu = kelas_menu_admin($p['nama_menu']);
+          $klsMenu = kelas_menu_admin();
         ?>
           <article class="card pos-card <?php echo $stok ? '' : 'stock-off'; ?>"
                    data-catcode="<?php echo e($p['kode_kategori']); ?>"
@@ -351,13 +344,8 @@ $persenTarget = $targetHarian > 0 ? min(100, (int)round($kanban['total'] / $targ
               <h4 class="card-title" style="margin:0;font-size:15px;line-height:1.3"><?php echo e($p['nama_menu']); ?></h4>
               <p class="card-desc clamp2" style="font-size:11.5px"><?php echo e($p['deskripsi'] ?? ''); ?></p>
               <div class="tag-row">
-                <?php if ($isRoll): ?>
-                  <span class="tag tag-matang">Crispy Gurih</span>
-                  <span class="tag tag-cat">Regular / Jumbo</span>
-                <?php else: ?>
-                  <span class="tag tag-lumer">Lumer / Matang</span>
-                  <span class="tag tag-cat">1 &amp; &frac12; Loyang</span>
-                <?php endif; ?>
+                <span class="tag tag-lumer">Lumer / Matang</span>
+                <span class="tag tag-cat">1 &amp; &frac12; Loyang</span>
               </div>
               <div class="card-foot">
                 <div class="price"><?php echo rupiah($p['harga_dasar']); ?><small>harga dasar</small></div>
@@ -539,7 +527,7 @@ $persenTarget = $targetHarian > 0 ? min(100, (int)round($kanban['total'] / $targ
 <!-- ============ POS JAVASCRIPT ENGINE ============ -->
 <script>
 const POS_PRODUCTS = <?php echo json_encode(array_map(function($p){
-    [$jenis, $src] = gambar_menu_admin($p['nama_menu'], $p['gambar'] ?? '');
+    [$jenis, $src] = gambar_menu_admin($p['gambar'] ?? '');
     return [
         'id' => (string)$p['id'],
         'nama_menu' => $p['nama_menu'],
@@ -549,7 +537,7 @@ const POS_PRODUCTS = <?php echo json_encode(array_map(function($p){
         'nama_kategori' => $p['nama_kategori'],
         'gambar_src' => $src,
         'mono' => monogram_menu_admin($p['nama_menu']),
-        'kelas' => kelas_menu_admin($p['nama_menu'])
+        'kelas' => kelas_menu_admin()
     ];
 }, $prodList), JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP); ?>;
 
@@ -639,14 +627,10 @@ function openPosCustomizer(pid) {
     document.getElementById('mPosDesk').textContent = p.deskripsi || '';
     document.getElementById('mPosHarga').textContent = posRp(p.harga_dasar);
     document.getElementById('mPosPid').value = p.id;
-    
+
     const em = document.getElementById('mPosEmoji');
     if (em) em.textContent = p.mono || 'PL';
-    
-    const isRoll = (p.kode_kategori === 'chicken_roll');
-    document.getElementById('wrapPosPorsi').style.display = isRoll ? 'none' : '';
-    document.getElementById('wrapPosMatang').style.display = isRoll ? 'none' : '';
-    
+
     document.querySelectorAll('input[name="pos_porsi"]').forEach(r => {
         r.checked = (r.value === '1_loyang');
         if (!r._bound) { r.addEventListener('change', updatePosModalTotal); r._bound = true; }
@@ -750,15 +734,14 @@ function renderPosRekom() {
 
 function updatePosModalTotal() {
     if (!curPosCustom) return;
-    const isRoll = (curPosCustom.product.kode_kategori === 'chicken_roll');
     const hd = parseInt(curPosCustom.product.harga_dasar, 10) || 0;
     const porsiChecked = (document.querySelector('input[name="pos_porsi"]:checked') || {}).value || '1_loyang';
-    const base = (!isRoll && porsiChecked === 'half_loyang') ? Math.round(hd / 2) : hd;
-    
+    const base = (porsiChecked === 'half_loyang') ? Math.round(hd / 2) : hd;
+
     const tops = getPosSelectedToppings();
     const per = base + tops.reduce((a, t) => a + t.harga, 0);
     const tot = per * (curPosCustom.qty || 1);
-    
+
     document.getElementById('mPosSatuan').textContent = posRp(per) + ' / porsi';
     document.getElementById('mPosTotal').textContent = posRp(tot);
 }
@@ -766,13 +749,12 @@ function updatePosModalTotal() {
 // Tambah item ke keranjang slip kasir
 function addPosItemToCart() {
     if (!curPosCustom) return;
-    const isRoll = (curPosCustom.product.kode_kategori === 'chicken_roll');
-    const porsi = isRoll ? '1_loyang' : ((document.querySelector('input[name="pos_porsi"]:checked') || {}).value || '1_loyang');
-    const matang = isRoll ? null : ((document.querySelector('input[name="pos_kematangan"]:checked') || {}).value || 'matang');
-    
+    const porsi = (document.querySelector('input[name="pos_porsi"]:checked') || {}).value || '1_loyang';
+    const matang = (document.querySelector('input[name="pos_kematangan"]:checked') || {}).value || 'matang';
+
     const tops = getPosSelectedToppings();
     const hd = parseInt(curPosCustom.product.harga_dasar, 10) || 0;
-    const base = (!isRoll && porsi === 'half_loyang') ? Math.round(hd / 2) : hd;
+    const base = (porsi === 'half_loyang') ? Math.round(hd / 2) : hd;
     const per = base + tops.reduce((a, t) => a + t.harga, 0);
     const qty = curPosCustom.qty || 1;
     

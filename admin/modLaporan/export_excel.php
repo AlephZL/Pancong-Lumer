@@ -32,14 +32,17 @@ mysqli_stmt_close($st);
 
 // 2. Top 5 Menu Terlaris
 $topMenu = [];
-$q = "SELECT p.nama_menu, SUM(oi.qty) AS qty, SUM(oi.subtotal) AS omzet
+$stTop = mysqli_prepare($koneksi, "SELECT p.nama_menu, SUM(oi.qty) AS qty, SUM(oi.subtotal) AS omzet
       FROM order_items oi
       JOIN products p ON p.id = oi.product_id
       JOIN orders o ON o.id = oi.order_id
-      WHERE DATE(o.created_at) BETWEEN '$tgl1' AND '$tgl2' AND o.status_pesanan != 'batal'
-      GROUP BY p.id, p.nama_menu ORDER BY qty DESC LIMIT 5";
-$rs = mysqli_query($koneksi, $q);
+      WHERE DATE(o.created_at) BETWEEN ? AND ? AND o.status_pesanan != 'batal'
+      GROUP BY p.id, p.nama_menu ORDER BY qty DESC LIMIT 5");
+mysqli_stmt_bind_param($stTop, 'ss', $tgl1, $tgl2);
+mysqli_stmt_execute($stTop);
+$rs = mysqli_stmt_get_result($stTop);
 if ($rs) while ($r = mysqli_fetch_assoc($rs)) $topMenu[] = $r;
+mysqli_stmt_close($stTop);
 
 // 3. Daftar Seluruh Transaksi
 $rows = [];
@@ -166,7 +169,7 @@ echo '<?mso-application progid="Excel.Sheet"?>' . "\n";
 
    <!-- Header Title -->
    <Row ss:Height="24">
-    <Cell ss:MergeAcross="10" ss:StyleID="sTitle"><Data ss:Type="String">REKAPITULASI PENJUALAN &amp; OMZET — PANCONG LUMER X CHICKEN ROLL</Data></Cell>
+    <Cell ss:MergeAcross="10" ss:StyleID="sTitle"><Data ss:Type="String">REKAPITULASI PENJUALAN &amp; OMZET — PANCONG LUMER</Data></Cell>
    </Row>
    <Row ss:Height="16">
     <Cell ss:MergeAcross="10" ss:StyleID="sSubtitle"><Data ss:Type="String">Periode Laporan: <?php echo xmlEscape($tgl1); ?> s/d <?php echo xmlEscape($tgl2); ?> | Kasir: <?php echo xmlEscape($namaKasir); ?> | Diunduh Pada: <?php echo xmlEscape($waktuUnduh); ?></Data></Cell>

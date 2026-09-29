@@ -1,6 +1,6 @@
 -- =====================================================
 -- Database: db_pancong
--- Sistem Pemesanan Pancong Lumer x Chicken Roll Selindung Baru
+-- Sistem Pemesanan Pancong Lumer Selindung Baru
 -- 8 Tabel Relasional | Charset utf8mb4
 -- Cara pakai: buat DB lalu import file ini (phpMyAdmin / mysql)
 --   CREATE DATABASE db_pancong; USE db_pancong; SOURCE database.sql;
@@ -184,7 +184,6 @@ INSERT INTO users (username, password, nama_lengkap, email, role) VALUES
 INSERT INTO categories (kode_kategori, nama_kategori) VALUES
 ('1_loyang',    'Pancong 1 Loyang'),
 ('half_loyang', 'Pancong 1/2 Loyang'),
-('chicken_roll','Chicken Roll'),
 ('topping',     'Topping Tambahan');
 
 INSERT INTO products (category_id, nama_menu, deskripsi, harga_dasar, gambar, is_available) VALUES
@@ -192,9 +191,7 @@ INSERT INTO products (category_id, nama_menu, deskripsi, harga_dasar, gambar, is
 ((SELECT id FROM categories WHERE kode_kategori='1_loyang'), 'Pancong Cheese Crunchy', 'Keju parut melimpah + crumble gurih.', 20000, NULL, 1),
 ((SELECT id FROM categories WHERE kode_kategori='1_loyang'), 'Pancong Tiramisu', 'Krim tiramisu + taburan cocoa premium.', 20000, NULL, 1),
 ((SELECT id FROM categories WHERE kode_kategori='1_loyang'), 'Pancong Matcha', 'Matcha creamy + crumble manis seimbang.', 20000, NULL, 1),
-((SELECT id FROM categories WHERE kode_kategori='1_loyang'), 'Pancong Taro Red Crumb', 'Taro lembut + red crumb manis.', 22000, NULL, 1),
-((SELECT id FROM categories WHERE kode_kategori='chicken_roll'), 'Chicken Roll Regular', 'Ayam berbumbu digulung crispy, saus garlic butter.', 15000, NULL, 1),
-((SELECT id FROM categories WHERE kode_kategori='chicken_roll'), 'Chicken Roll Jumbo', 'Porsi jumbo sharing 2-3 orang, extra saus.', 27000, NULL, 1);
+((SELECT id FROM categories WHERE kode_kategori='1_loyang'), 'Pancong Taro Red Crumb', 'Taro lembut + red crumb manis.', 22000, NULL, 1);
 
 INSERT INTO toppings (nama_topping, harga, is_available) VALUES
 ('Keju Parut',   5000, 1),

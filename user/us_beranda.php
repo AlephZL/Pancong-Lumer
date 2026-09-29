@@ -2,16 +2,17 @@
 // user/us_beranda.php — Katalog ala Stitch + Modal Customizer + Mini-cart aside
 // $koneksi tersedia dari index.php
 
-// --- Ambil kategori (kecuali topping) ---
+// --- Ambil kategori (hanya pancong; topping disembunyikan) ---
 $categories = [];
-$res = mysqli_query($koneksi, "SELECT id, kode_kategori, nama_kategori FROM categories ORDER BY id ASC");
+$res = mysqli_query($koneksi, "SELECT id, kode_kategori, nama_kategori FROM categories WHERE kode_kategori != 'topping' ORDER BY id ASC");
 while ($r = mysqli_fetch_assoc($res)) { $categories[] = $r; }
 
-// --- Ambil produk + kode kategori ---
+// --- Ambil produk + kode kategori (pancong lumer) ---
 $products = [];
 $q = "SELECT p.id, p.category_id, p.nama_menu, p.deskripsi, p.harga_dasar, p.gambar, p.is_available,
              c.kode_kategori, c.nama_kategori
       FROM products p JOIN categories c ON c.id = p.category_id
+      WHERE c.kode_kategori != 'topping'
       ORDER BY c.id ASC, p.id ASC";
 $res = mysqli_query($koneksi, $q);
 while ($r = mysqli_fetch_assoc($res)) { $products[] = $r; }
@@ -41,11 +42,9 @@ while ($r = mysqli_fetch_assoc($res)) {
     ];
 }
 
-// Visual menu: foto asli bila ada, SVG generik bila belum, monogram elegan terakhir
-function gambar_menu($nama, $file) {
+// Visual menu: foto asli bila ada, SVG pancong bila belum, monogram elegan terakhir
+function gambar_menu($file) {
     if (!empty($file)) return ['file', 'gambar/' . rawurlencode($file)];
-    $n = strtolower($nama);
-    if (strpos($n, 'roll') !== false || strpos($n, 'jumbo') !== false) return ['svg', 'gambar/menu-roll.svg'];
     return ['svg', 'gambar/menu-pancong.svg'];
 }
 function monogram_menu($nama) {
@@ -54,9 +53,8 @@ function monogram_menu($nama) {
     foreach (array_slice($kata, 0, 2) as $k) $m .= strtoupper(substr($k, 0, 1));
     return $m !== '' ? $m : 'PL';
 }
-function kelas_menu($nama) {
-    $n = strtolower($nama);
-    return (strpos($n, 'roll') !== false) ? 'roll' : 'pancong';
+function kelas_menu() {
+    return 'pancong';
 }
 
 // Badge ala Stitch per produk
@@ -66,7 +64,6 @@ function badge_menu($nama, $stok, $idx) {
     if ($idx === 0 || strpos($n, 'choco') !== false) return ['Best Seller', 'bd-sec'];
     if (strpos($n, 'jumbo') !== false) return ['Hemat Sharing', 'bd-amber'];
     if (strpos($n, 'taro') !== false || strpos($n, 'matcha') !== false) return ['Varian Baru', 'bd-pink'];
-    if (strpos($n, 'roll') !== false) return ['Crispy Gurih', 'bd-grey'];
     return ['Lumer Favorit', 'bd-amber'];
 }
 
@@ -87,7 +84,7 @@ function badge_menu($nama, $stok, $idx) {
     <div class="banner-cta"><a href="#katalog">Klaim promo</a><a class="ghost" href="index.php?page=checkout">Lihat keranjang</a></div>
   </div>
   <div class="banner b2">
-    <img class="banner-photo" src="gambar/hero-roll.svg" alt="Chicken roll crispy dengan saus" loading="lazy" onerror="this.closest('.banner').classList.add('no-photo');this.remove()">
+    <img class="banner-photo" src="gambar/login-hero.jpg" alt="Pancong lumer hangat dengan topping melimpah" loading="lazy" onerror="this.closest('.banner').classList.add('no-photo');this.remove()">
     <div class="banner-body">
       <span class="banner-flag">Varian baru</span>
       <h2>Taro &amp; Matcha Red Crumb Lumer</h2>
@@ -123,11 +120,10 @@ function badge_menu($nama, $stok, $idx) {
     <div class="grid-menu">
       <?php foreach ($products as $idx => $p):
         $stok = ((int)$p['is_available'] === 1);
-        $isRoll = ($p['kode_kategori'] === 'chicken_roll');
-        [$jenisImg, $imgSrc] = gambar_menu($p['nama_menu'], $p['gambar'] ?? '');
+        [$jenisImg, $imgSrc] = gambar_menu($p['gambar'] ?? '');
         [$badgeTxt, $badgeCls] = badge_menu($p['nama_menu'], $stok, $idx);
         $mono = monogram_menu($p['nama_menu']);
-        $klsMenu = kelas_menu($p['nama_menu']);
+        $klsMenu = kelas_menu();
       ?>
       <article class="card <?php echo $stok?'':'stock-off'; ?>" data-catcode="<?php echo e($p['kode_kategori']); ?>" data-nama="<?php echo e(strtolower($p['nama_menu'])); ?>">
         <div class="card-img">
@@ -143,13 +139,8 @@ function badge_menu($nama, $stok, $idx) {
           <h3 class="card-title"><?php echo e($p['nama_menu']); ?></h3>
           <p class="card-desc clamp2"><?php echo e($p['deskripsi'] ?? ''); ?></p>
           <div class="tag-row">
-            <?php if ($isRoll): ?>
-              <span class="tag tag-matang">Crispy gurih</span>
-              <span class="tag tag-cat">Regular / Jumbo</span>
-            <?php else: ?>
-              <span class="tag tag-lumer">Setengah matang lumer</span>
-              <span class="tag tag-matang">Matang sempurna</span>
-            <?php endif; ?>
+            <span class="tag tag-lumer">Setengah matang lumer</span>
+            <span class="tag tag-matang">Matang sempurna</span>
           </div>
           <div class="card-foot">
             <div class="price"><?php echo rupiah($p['harga_dasar']); ?><small>harga dasar / loyang</small></div>
@@ -167,7 +158,7 @@ function badge_menu($nama, $stok, $idx) {
 
     <!-- Info gerai -->
     <div class="store-card">
-      <img src="gambar/menu-roll.svg" alt="Chicken roll crispy" loading="lazy" style="width:120px;flex:none;border-radius:14px" onerror="this.remove()">
+      <img src="gambar/menu-pancong.svg" alt="Pancong lumer" loading="lazy" style="width:120px;flex:none;border-radius:14px" onerror="this.remove()">
       <div style="flex:1;min-width:220px">
         <span class="eyebrow">Gerai Selindung Baru</span>
         <b style="color:var(--cocoa);font-size:16px">Dimasak dadakan di atas loyang panas</b>

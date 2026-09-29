@@ -45,9 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi']) && $_POST['ak
                 }
             }
             // Ambil produk
-            $stmt = mysqli_prepare($koneksi, "SELECT id, category_id, nama_menu, harga_dasar, is_available,
-                (SELECT kode_kategori FROM categories WHERE id = products.category_id) AS kode
-                FROM products WHERE id = ? LIMIT 1");
+            $stmt = mysqli_prepare($koneksi, "SELECT id, category_id, nama_menu, harga_dasar, is_available FROM products WHERE id = ? LIMIT 1");
             mysqli_stmt_bind_param($stmt, 'i', $pid);
             mysqli_stmt_execute($stmt);
             $res = mysqli_stmt_get_result($stmt);
@@ -55,10 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi']) && $_POST['ak
             mysqli_stmt_close($stmt);
             if (!$prod || (int)$prod['is_available'] !== 1) { $valid = false; $err = 'Ada menu yang sudah tidak tersedia. Ulangi pilihan.'; break; }
 
-            $isRoll = ($prod['kode'] === 'chicken_roll');
-            if ($isRoll) { $porsi = '1_loyang'; $matang = null; }
             $base = (int)$prod['harga_dasar'];
-            if (!$isRoll && $porsi === 'half_loyang') $base = (int)round($base / 2);
+            if ($porsi === 'half_loyang') $base = (int)round($base / 2);
 
             // Harga topping dari DB
             $tops = [];
@@ -159,6 +155,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi']) && $_POST['ak
                     }
                 }
                 mysqli_commit($koneksi);
+                // Simpan no_antrean di session agar guest bisa lacak pesanan
+                if (!isset($_SESSION['guest_orders'])) $_SESSION['guest_orders'] = [];
+                $_SESSION['guest_orders'][] = $no;
+                // Batasi riwayat session max 10 tiket
+                $_SESSION['guest_orders'] = array_slice($_SESSION['guest_orders'], -10);
+                $_SESSION['last_order'] = $no;
                 // Sukses → ke halaman antrean + kosongkan keranjang via flag
                 header('Location: index.php?page=antrean&no=' . urlencode($no) . '&baru=1');
                 exit;
@@ -176,8 +178,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi']) && $_POST['ak
     }
 }
 
-// Cek file QRIS statis milik gerai
-$qrisImg = is_file(__DIR__ . '/../gambar/qris.png') ? 'gambar/qris.png' : '';
+// Cek file QRIS statis milik gerai (png/jpg/svg)
+$qrisImg = '';
+foreach (['qris.png','qris.jpg','qris.svg'] as $_qf) {
+    if (is_file(__DIR__ . '/../gambar/' . $_qf)) { $qrisImg = 'gambar/' . $_qf; break; }
+}
 ?>
 
 <div class="section-head">
@@ -247,18 +252,59 @@ $qrisImg = is_file(__DIR__ . '/../gambar/qris.png') ? 'gambar/qris.png' : '';
 
       <div id="qrisArea">
         <div class="qris-box">
-          <small style="opacity:.8;letter-spacing:.05em">QRIS STATIS GERAI</small>
+          <div class="qris-header">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="vertical-align:middle"><rect x="2" y="2" width="8" height="8" rx="1.5" stroke="#fff" stroke-width="1.6"/><rect x="4" y="4" width="4" height="4" rx=".8" fill="#fff"/><rect x="14" y="2" width="8" height="8" rx="1.5" stroke="#fff" stroke-width="1.6"/><rect x="16" y="4" width="4" height="4" rx=".8" fill="#fff"/><rect x="2" y="14" width="8" height="8" rx="1.5" stroke="#fff" stroke-width="1.6"/><rect x="4" y="16" width="4" height="4" rx=".8" fill="#fff"/><rect x="14" y="14" width="3" height="3" rx=".5" fill="#fff"/><rect x="19" y="14" width="3" height="3" rx=".5" fill="#fff"/><rect x="14" y="19" width="3" height="3" rx=".5" fill="#fff"/><rect x="19" y="19" width="3" height="3" rx=".5" fill="#fff"/></svg>
+            <span>QRIS — Scan untuk Bayar</span>
+          </div>
           <?php if ($qrisImg): ?>
-            <img src="<?php echo e($qrisImg); ?>" alt="QRIS Gerai" style="width:170px;border-radius:12px;margin:10px auto">
+            <img src="<?php echo e($qrisImg); ?>" alt="QRIS Pancong Lumer" class="qris-img">
           <?php else: ?>
-            <div class="qris-qr">PANCONG LUMER<br>SELINDUNG BARU<br><span style="font-size:11px">NMID: ID1024XXXXXX</span></div>
+            <div class="qris-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+                <rect width="160" height="160" rx="12" fill="#fff"/>
+                <!-- QR finder patterns -->
+                <rect x="12" y="12" width="40" height="40" rx="4" fill="none" stroke="#1B1B1C" stroke-width="4"/>
+                <rect x="20" y="20" width="24" height="24" rx="3" fill="#1B1B1C"/>
+                <rect x="108" y="12" width="40" height="40" rx="4" fill="none" stroke="#1B1B1C" stroke-width="4"/>
+                <rect x="116" y="20" width="24" height="24" rx="3" fill="#1B1B1C"/>
+                <rect x="12" y="108" width="40" height="40" rx="4" fill="none" stroke="#1B1B1C" stroke-width="4"/>
+                <rect x="20" y="116" width="24" height="24" rx="3" fill="#1B1B1C"/>
+                <!-- Data modules (decorative) -->
+                <rect x="60" y="12" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="76" y="12" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="92" y="12" width="8" height="8" rx="1" fill="#1B1B1C"/>
+                <rect x="60" y="28" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="76" y="28" width="8" height="8" rx="1" fill="#B31312"/>
+                <rect x="60" y="44" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="76" y="44" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="92" y="44" width="8" height="8" rx="1" fill="#1B1B1C"/>
+                <rect x="12" y="60" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="28" y="60" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="44" y="60" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="60" y="60" width="8" height="8" rx="1" fill="#B31312"/><rect x="76" y="60" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="92" y="60" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="108" y="60" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="124" y="60" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="140" y="60" width="8" height="8" rx="1" fill="#1B1B1C"/>
+                <rect x="12" y="76" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="44" y="76" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="76" y="76" width="8" height="8" rx="1" fill="#B31312"/><rect x="108" y="76" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="140" y="76" width="8" height="8" rx="1" fill="#1B1B1C"/>
+                <rect x="12" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="28" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="44" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="60" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="76" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="92" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="108" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="124" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="140" y="92" width="8" height="8" rx="1" fill="#1B1B1C"/>
+                <!-- Bottom-right data -->
+                <rect x="108" y="108" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="124" y="108" width="8" height="8" rx="1" fill="#B31312"/><rect x="140" y="108" width="8" height="8" rx="1" fill="#1B1B1C"/>
+                <rect x="108" y="124" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="140" y="124" width="8" height="8" rx="1" fill="#1B1B1C"/>
+                <rect x="108" y="140" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="124" y="140" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="140" y="140" width="8" height="8" rx="1" fill="#1B1B1C"/>
+                <rect x="60" y="108" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="76" y="124" width="8" height="8" rx="1" fill="#1B1B1C"/><rect x="92" y="140" width="8" height="8" rx="1" fill="#1B1B1C"/>
+              </svg>
+              <p class="qris-demo-label">Demo — ganti dengan QR asli</p>
+            </div>
           <?php endif; ?>
-          <div style="font-size:13px">a.n. Pancong Lumer Selindung Baru</div>
-          <div style="font-size:11px;opacity:.75">Admin dapat mengganti dengan menaruh file <b>gambar/qris.png</b></div>
+          <div class="qris-merchant">
+            <b>Pancong Lumer — Selindung Baru</b>
+            <span>NMID: ID1024XXXXXX</span>
+          </div>
         </div>
+        <p class="qris-hint">Scan QR di atas menggunakan aplikasi e-wallet atau m-banking, lalu unggah bukti transfer di bawah.</p>
         <div id="buktiWrap" style="margin-top:12px">
           <label class="flabel">Unggah Bukti Transfer * (JPG/PNG, maks 2MB)</label>
-          <input class="fin" type="file" name="bukti_bayar" accept=".jpg,.jpeg,.png">
+          <div class="upload-area" id="uploadArea">
+            <input class="fin" type="file" name="bukti_bayar" accept=".jpg,.jpeg,.png" id="inputBukti" onchange="previewBukti(this)">
+            <div class="upload-inner" id="uploadInner">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0L8 8m4-4l4 4" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span>Klik atau seret file ke sini</span>
+              <small>JPG / PNG, maksimal 2MB</small>
+            </div>
+            <div class="upload-preview" id="uploadPreview" style="display:none">
+              <img id="previewImg" alt="Preview bukti">
+              <button type="button" class="upload-remove" onclick="removeBukti()">✕</button>
+            </div>
+          </div>
           <div class="ferr" id="err_bukti_bayar"></div>
         </div>
       </div>

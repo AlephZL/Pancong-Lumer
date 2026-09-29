@@ -11,7 +11,7 @@ $inisial = $isLogin ? strtoupper(substr(trim($namaUser), 0, 1)) : '';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pancong Lumer x Chicken Roll — Selindung Baru</title>
+<title>Pancong Lumer — Selindung Baru</title>
 <link rel="stylesheet" href="css/style.css?v=<?php echo filemtime(__DIR__ . '/../css/style.css'); ?>">
 <script src="js/validasi.js?v=<?php echo filemtime(__DIR__ . '/../js/validasi.js'); ?>" defer></script>
 </head>
@@ -24,11 +24,11 @@ $inisial = $isLogin ? strtoupper(substr(trim($namaUser), 0, 1)) : '';
         <span class="brand-title">Pancong Lumer
           <span class="open-badge"><span class="status-dot"></span>BUKA • 10–22</span>
         </span>
-        <span class="brand-sub">Selindung Baru &middot; x Chicken Roll</span>
+        <span class="brand-sub">Selindung Baru &middot; Pangkalpinang</span>
       </span>
     </a>
     <div class="hsearch">
-      <input id="qDesktop" class="js-search" placeholder="Cari choco, roll, topping…" oninput="cariMenu(this.value);syncSearch(this.value,this)" autocomplete="off">
+      <input id="qDesktop" class="js-search" placeholder="Cari choco, keju, topping…" oninput="cariMenu(this.value);syncSearch(this.value,this)" autocomplete="off">
       <kbd>/</kbd>
     </div>
     <div class="nav-actions">

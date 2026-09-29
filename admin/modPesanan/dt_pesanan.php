@@ -31,9 +31,11 @@ while ($r = mysqli_fetch_assoc($rs)) {
     $orders[] = $r;
 }
 
+if (!function_exists('tab')) {
 function tab($key, $label, $cur) {
     $c = $key === $cur ? 'active' : '';
     return '<a class="chip '.$c.'" href="ad_index.php?mod=pesanan&status='.$key.'">'.$label.'</a>';
+}
 }
 ?>
 <span class="eyebrow">Antrean dapur</span>

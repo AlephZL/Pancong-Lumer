@@ -75,7 +75,6 @@
       : k === 'tiga_perempat' ? '3/4 Matang' : 'Matang Sempurna';
   }
   function labelPorsi(it) {
-    if ((it.nama || '').toLowerCase().indexOf('roll') !== -1) return '';
     return it.porsi === 'half_loyang' ? '1/2 Loyang' : '1 Loyang';
   }
   function monogramFor(nama) {
@@ -196,9 +195,6 @@
     const em = $('#mEmoji');
     if (em) em.textContent = monogramFor(p.nama_menu);
 
-    const isRoll = (p.kode_kategori === 'chicken_roll');
-    $('#wrapPorsi').style.display = isRoll ? 'none' : '';
-    $('#wrapMatang').style.display = isRoll ? 'none' : '';
     $$('input[name="porsi"]').forEach((r) => {
       r.checked = (r.value === '1_loyang');
     });
@@ -252,7 +248,6 @@
   function basePrice() {
     if (!CUR) return 0;
     const hd = parseInt(CUR.product.harga_dasar, 10) || 0;
-    if (CUR.product.kode_kategori === 'chicken_roll') return hd;
     const porsi = ($('input[name="porsi"]:checked') || {}).value || '1_loyang';
     if (porsi === 'half_loyang') return Math.round(hd / 2);
     return hd;
@@ -315,11 +310,8 @@
 
   window.tambahKeranjang = function () {
     if (!CUR) return;
-    const isRoll = (CUR.product.kode_kategori === 'chicken_roll');
-    const porsi = isRoll ? '1_loyang'
-      : (($('input[name="porsi"]:checked') || {}).value || '1_loyang');
-    const matang = isRoll ? null
-      : (($('input[name="kematangan"]:checked') || {}).value || 'matang');
+    const porsi = ($('input[name="porsi"]:checked') || {}).value || '1_loyang';
+    const matang = ($('input[name="kematangan"]:checked') || {}).value || 'matang';
     const tops = selectedToppings();
     const base = basePrice();
     const per = base + tops.reduce((a, t) => a + t.harga, 0);
@@ -522,7 +514,7 @@
     } else {
       tb.innerHTML = c.map((it, i) => {
         const top = (it.toppings || []).map((t) => escapeHtml(t.nama)).join(', ') || '-';
-        const ket = (it.porsi === 'half_loyang' ? '1/2 Loyang' : ((it.nama || '').toLowerCase().indexOf('roll') !== -1 ? '' : '1 Loyang')) +
+        const ket = (it.porsi === 'half_loyang' ? '1/2 Loyang' : '1 Loyang') +
           (it.kematangan ? ' • ' + labelMatang(it.kematangan) : '') +
           '<br><small style="color:#5b403c">Topping: ' + top + '</small>';
         return '<tr><td><b>' + escapeHtml(it.nama) + '</b><br><small style="color:#5b403c">' + ket +
@@ -565,9 +557,29 @@
 
   window.togglePay = function () {
     const v = ($('input[name="metode_bayar"]:checked') || {}).value || 'qris';
-    const q = $('#qrisArea'), f = $('#buktiWrap');
+    const q = $('#qrisArea');
     if (q) q.style.display = v === 'qris' ? '' : 'none';
-    if (f) f.style.display = v === 'qris' ? '' : 'none';
+  };
+
+  window.previewBukti = function (inp) {
+    var file = inp.files && inp.files[0];
+    if (!file) return;
+    var inner = $('#uploadInner'), prev = $('#uploadPreview'), img = $('#previewImg');
+    if (!inner || !prev || !img) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      img.src = e.target.result;
+      inner.style.display = 'none';
+      prev.style.display = '';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.removeBukti = function () {
+    var inp = $('#inputBukti'), inner = $('#uploadInner'), prev = $('#uploadPreview');
+    if (inp) inp.value = '';
+    if (inner) inner.style.display = '';
+    if (prev) prev.style.display = 'none';
   };
 
   window.validasiCheckout = function () {

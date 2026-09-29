@@ -2,7 +2,7 @@
 // admin/modMenu/dt_menu.php — Tabel kelola menu
 $rows = [];
 $q = "SELECT p.*, c.nama_kategori, c.kode_kategori FROM products p
-      JOIN categories c ON c.id=p.category_id ORDER BY c.id, p.id";
+      JOIN categories c ON c.id=p.category_id WHERE c.kode_kategori != 'topping' ORDER BY c.id, p.id";
 $rs = mysqli_query($koneksi, $q);
 while ($r = mysqli_fetch_assoc($rs)) $rows[] = $r;
 ?>

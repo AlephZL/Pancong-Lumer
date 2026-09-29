@@ -21,14 +21,17 @@ mysqli_stmt_close($st);
 
 // Top menu periode
 $topMenu = [];
-$q = "SELECT p.nama_menu, SUM(oi.qty) AS qty, SUM(oi.subtotal) AS omzet
+$stTop = mysqli_prepare($koneksi, "SELECT p.nama_menu, SUM(oi.qty) AS qty, SUM(oi.subtotal) AS omzet
       FROM order_items oi
       JOIN products p ON p.id = oi.product_id
       JOIN orders o ON o.id = oi.order_id
-      WHERE DATE(o.created_at) BETWEEN '$tgl1' AND '$tgl2' AND o.status_pesanan != 'batal'
-      GROUP BY p.id, p.nama_menu ORDER BY qty DESC LIMIT 5";
-$rs = mysqli_query($koneksi, $q);
+      WHERE DATE(o.created_at) BETWEEN ? AND ? AND o.status_pesanan != 'batal'
+      GROUP BY p.id, p.nama_menu ORDER BY qty DESC LIMIT 5");
+mysqli_stmt_bind_param($stTop, 'ss', $tgl1, $tgl2);
+mysqli_stmt_execute($stTop);
+$rs = mysqli_stmt_get_result($stTop);
 if ($rs) while ($r = mysqli_fetch_assoc($rs)) $topMenu[] = $r;
+mysqli_stmt_close($stTop);
 
 // Daftar transaksi
 $rows = [];

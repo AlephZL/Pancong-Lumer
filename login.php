@@ -45,6 +45,18 @@ function cek_password($input, $hashTersimpan) {
 }
 
 function set_login($row) {
+    // Klaim pesanan guest yang dibuat di sesi ini ke akun yang login
+    if (!empty($_SESSION['guest_orders'])) {
+        global $koneksi;
+        foreach ($_SESSION['guest_orders'] as $gno) {
+            $stmt = mysqli_prepare($koneksi, "UPDATE orders SET user_id = ? WHERE no_antrean = ? AND user_id IS NULL");
+            mysqli_stmt_bind_param($stmt, 'is', $row['id'], $gno);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+        }
+        unset($_SESSION['guest_orders']);
+        unset($_SESSION['last_order']);
+    }
     $_SESSION['user_id']      = $row['id'];
     $_SESSION['username']     = $row['username'];
     $_SESSION['nama_lengkap'] = $row['nama_lengkap'];
@@ -141,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi']) && $_POST['ak
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Masuk Akun — Pancong Lumer x Chicken Roll</title>
+<title>Masuk Akun — Pancong Lumer</title>
 <link rel="stylesheet" href="css/style.css?v=<?php echo filemtime(__DIR__ . '/css/style.css'); ?>">
 <script src="js/validasi.js?v=<?php echo filemtime(__DIR__ . '/js/validasi.js'); ?>" defer></script>
 </head>
@@ -188,10 +200,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi']) && $_POST['ak
     <div class="auth-card">
       <div class="auth-brand">
         <span class="auth-mark">PL</span>
-        <h1>Pancong Lumer x Chicken Roll</h1>
+        <h1>Pancong Lumer</h1>
       </div>
       <h2 class="auth-title"><?php echo $mode === 'daftar' ? 'Buat Akun Pelanggan' : 'Selamat Datang, Kuliner Lovers!'; ?></h2>
-      <p class="auth-sub">Gerai Selindung Baru &bull; Manisnya Lumer, Gurihnya Renyah</p>
+      <p class="auth-sub">Gerai Selindung Baru &bull; Manis Lumer di Setiap Loyang</p>
 
       <?php if ($error): ?>
         <div class="alert alert-err" style="margin-top:14px"><?php echo e($error); ?></div>
